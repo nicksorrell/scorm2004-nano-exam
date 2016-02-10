@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Nano Course</title>
+  <style>
+    body {
+      background: #eee;
+      font-family: sans-serif;
+      font-size: 14px;
+    }
+    .panel {
+      width: 80%;
+      margin: 0 auto;
+      background: #fff;
+      padding: 1rem;
+      border: 1px solid #ccc;
+      box-shadow: 1px 1px 3px #888;
+    }
+
+    .panel .controls {
+      text-align: right;
+      border-top: 1px solid #ccc;
+      padding-top: 10px;
+    }
+
+    #content {
+      min-height: 300px;
+    }
+
+    button {
+      width: 100px;
+    }
+    #title {
+      font-size: 2rem;
+    }
+
+    button[disabled] {
+      opacity: 0.5;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="panel">
+    <div id="content">
+      <h1 id="title"></h1>
+      <p id="text"></p>
+      <p id="data"></p>
+    </div>
+    <div class="controls">
+      <button id="prev"><</button>
+      <span id="pageNum"></span>
+      <button id="next">></button>
+    </div>
+  </div>
+</body>
+<script src="js/sco_data.js"></script>
+<script src="js/main.js"></script>
+<script src="js/SCORM_2004_APIwrapper.js"></script>
+</html>
