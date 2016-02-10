@@ -8,14 +8,15 @@ var SCO = (function(data){
       content: {},
       startTime: new Date(),
       currQuestionStart: null,
-      currQuestionEnd: null
+      currQuestionEnd: null,
+      finalScore: 0
     },
     /**
      * @namespace SCO.nav
      * @desc The SCO's navigation data and methods
      * @prop {number} activePageNumber - The sequential number of the active page
      * @prop {object} activePage - The active page object
-     * @prop {object} pageData - Holds the generated HTML for special pages like test questions
+     * @prop {object} pageData - Holds a generated HTML element for special pages like test questions
      * @prop {boolean} onFirstPage - If SCO is on the first page
      * @prop {boolean} onLastPage - If SCO is on the last page
      */
@@ -63,13 +64,10 @@ var SCO = (function(data){
         if(data.config.randomizeQuestions){
           randomizedQuestions = SCO.utils.shuffleArray(questionNums.slice(0));
 
-          console.log(questionNums + " -> " + randomizedQuestions);
           var targetPages = [];
 
           for(i = 0, j = randomizedQuestions.length; i < j; i++){
             targetPages.push(pages[randomizedQuestions[i]]);
-            console.log(targetPages[i].title);
-            console.log("going to page " + questionNums[i]);
           }
 
           for(var k = 0, l = targetPages.length; k < l; k++){
@@ -89,9 +87,44 @@ var SCO = (function(data){
         SCO.nav.activePage = SCO.data.content.pages[pageNum];
         SCO.nav.activePageNumber = pageNum;
         SCO.nav.pageData = null;
+
         if(SCO.nav.activePage.type == 'question') {
           SCO.nav.pageData = SCO.nav.loadQuestionData(SCO.nav.activePage);
           SCO.data.currQuestionStart = new Date().getTime();
+        }
+
+        // TODO - Add submit functionality
+        if(SCO.nav.activePage.type == 'submit') {
+          var submitContainer = document.createElement('div');
+
+          var submitStatus = document.createElement('p');
+          submitStatus.innerHTML = "";
+
+          var submitBtn = document.createElement('button');
+          submitBtn.innerHTML = "Submit Assessment";
+
+          submitBtn.addEventListener('click', function(){
+            submitBtn.style.visibility = "hidden";
+            SCO.UI.lock('prev');
+            submitStatus.innerHTML = "Submitting assessment responses...";
+
+            if(SCO.SCORM.setInteractions()){
+              setTimeout(function(){
+                submitStatus.innerHTML = "Evaluating assessment...";
+
+                if(SCO.SCORM.grade()){
+                  setTimeout(function(){
+                    submitStatus.innerHTML = "Your assessment evaluation is complete.<br>Please select the <b>Exit</b> button to see your results on the LMS.";
+                  }, 3000);
+                }
+              }, 3000);
+            }
+          });
+
+          submitContainer.appendChild(submitStatus);
+          submitContainer.appendChild(submitBtn);
+
+          SCO.nav.pageData = submitContainer;
         }
 
         SCO.UI.update(SCO.nav.activePage.behavior);
@@ -168,18 +201,30 @@ var SCO = (function(data){
       },
 
       /**
+       * @desc Unlocks any locked UI elements
+       * @memberof SCO.UI
+       */
+      unlock: function(targetID){
+        if(document.getElementById(targetID).disabled) {
+          document.getElementById(targetID).disabled = false;
+        }
+      },
+
+      lock: function(targetID){
+        document.getElementById(targetID).disabled = true;
+      },
+
+      /**
        * @param {object} options - Page-specific behavior options
        * @desc Updates UI elements based on the loaded pageNum
        * @memberof SCO.UI
        */
       update: function(options){
         document.getElementById('pageNum').innerHTML = (SCO.nav.activePageNumber+1).toString() + " of " + SCO.data.content.pages.length.toString();
-        document.getElementById('prev').style.visibility = (SCO.nav.activePageNumber === 0) ? 'hidden' : 'visible';
-        document.getElementById('next').style.visibility = (SCO.nav.activePageNumber >= (SCO.data.content.pages.length-1)) ? 'hidden' : 'visible';
+        document.getElementById('prev').disabled = (SCO.nav.activePageNumber === 0) ? true : false;
+        document.getElementById('next').disabled = (SCO.nav.activePageNumber >= (SCO.data.content.pages.length-1)) ? true : false;
 
-        if(document.getElementById('next').disabled) {
-          document.getElementById('next').disabled = false;
-        }
+
 
         document.getElementById('title').innerHTML = SCO.nav.activePage.title;
         document.getElementById('text').innerHTML = SCO.nav.activePage.text;
@@ -194,7 +239,7 @@ var SCO = (function(data){
         if(options.lockNext) {
           if(SCO.nav.activePage.type == 'question'){
             if(!SCO.nav.activePage.answered) {
-              document.getElementById('next').setAttribute('disabled', 'true');
+              document.getElementById('next').disabled = true;
             }
 
             if(SCO.nav.activePage.answered){
@@ -204,7 +249,14 @@ var SCO = (function(data){
                 }
               }
             }
+          } else {
+            // TODO - Add 'visited' state for non-question pages
+            document.getElementById('next').disabled = true;
           }
+        }
+
+        if(options.lockPrev){
+          document.getElementById('prev').disabled = true;
         }
       }
     },
@@ -312,6 +364,7 @@ var SCO = (function(data){
           doSetValue(interactionStr + ".timestamp", SCO.interactions.data[interaction].time);
           i++;
         }
+        return true;
       },
 
       /**
@@ -330,7 +383,10 @@ var SCO = (function(data){
         }
 
         var scaledScore = Math.round((numCorrect / numInteractions)*100)/100;
+        SCO.data.finalScore = scaledScore*100;
         doSetValue('cmi.score.scaled', scaledScore);
+
+        return true;
       },
 
       /**
@@ -338,8 +394,6 @@ var SCO = (function(data){
        * @memberof SCO.SCORM
        */
       exit: function(){
-        SCO.SCORM.setInteractions();
-        SCO.SCORM.grade();
         doSetValue('cmi.completion_status', 'completed');
         doSetValue("adl.nav.request", "exitAll");
         doSetValue("cmi.exit", "normal");
@@ -403,6 +457,10 @@ var SCO = (function(data){
   SCO.nav.init();
   SCO.UI.init();
   SCO.nav.loadPageData(SCO.nav.activePageNumber);
+  window.onload = function(){
+    document.getElementsByClassName('panel')[0].style.visibility = 'visible';
+    document.getElementsByClassName('panel')[0].style.opacity = 1;
+  };
 
   return {
     showInteractions: function(){

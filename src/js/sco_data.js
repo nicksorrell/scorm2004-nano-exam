@@ -113,10 +113,12 @@ var SCO_data = {
 			]
 		},
 		{
-			title: "Summary Page",
-			type: 'summary',
-			behavior: {},
-			text: "Dynamics joint motion three laws of robotics collision sensor jerk velocity programmable logic controller performance program. Hose static trigger point axle microchip scale shear pad."
+			title: 'Test Results',
+			type: 'submit',
+			behavior: {
+				lockNext: true
+			},
+			text: 'Select <b>Submit</b> to grade the assessment. You will not be able to revisit your answers once you submit the assessment.'
 		}
 	]
 };

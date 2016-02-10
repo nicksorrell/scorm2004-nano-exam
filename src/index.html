@@ -9,6 +9,7 @@
       background: #eee;
       font-family: sans-serif;
       font-size: 14px;
+      margin-top: 5%;
     }
     .panel {
       width: 80%;
@@ -17,6 +18,9 @@
       padding: 1rem;
       border: 1px solid #ccc;
       box-shadow: 1px 1px 3px #888;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 1s;
     }
 
     .panel .controls {
@@ -67,8 +71,8 @@
       <button id="exit">X</button>
     </div>
   </div>
+  <script src="js/sco_data.js"></script>
+  <script src="js/SCORM_2004_APIWrapper.js"></script>
+  <script src="js/main.js"></script>
 </body>
-<script src="js/sco_data.js"></script>
-<script src="js/SCORM_2004_APIWrapper.js"></script>
-<script src="js/main.js"></script>
 </html>
