@@ -166,6 +166,7 @@ function doTerminate()
    if (! initialized) return "true";
 
    var api = getAPIHandle();
+   var result = "";
    if (api == null)
    {
       message("Unable to locate the LMS's API Implementation.\nTerminate was not successful.");
@@ -174,7 +175,7 @@ function doTerminate()
    else
    {
       // call the Terminate function that should be implemented by the API
-      var result = api.Terminate("");
+      result = api.Terminate("");
       if (result.toString() != "true")
       {
          var err = ErrorHandler();
@@ -183,7 +184,6 @@ function doTerminate()
    }
 
    initialized = false;
-
    return result.toString();
 }
 
@@ -490,7 +490,7 @@ function getAPI()
    {
       message("Unable to find an API adapter");
    }
-   return theAPI
+   return theAPI;
 }
 
 /*******************************************************************************

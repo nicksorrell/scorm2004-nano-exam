@@ -1,11 +1,14 @@
 {
   "name": "nanocourse",
   "version": "1.0.0",
-  "description": "",
+  "description": "A simple SCORM 2004 3rd Edition Exam",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC"
+  "author": "Nick Sorrell",
+  "license": "ISC",
+  "devDependencies": {
+    "jsdoc": "^3.4.0"
+  }
 }

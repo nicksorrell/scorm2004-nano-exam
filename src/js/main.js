@@ -161,6 +161,10 @@ var SCO = (function(data){
             SCO.nav.loadPageData(SCO.nav.activePageNumber);
           }
         });
+
+        document.getElementById('exit').addEventListener('click', function(){
+          SCO.SCORM.exit();
+        });
       },
 
       /**
@@ -232,20 +236,43 @@ var SCO = (function(data){
        * @return {string} The SCORM-formatted result
        * @memberof SCO.utils
        */
-      formatTime: function(millisecs) {
-        var secs = Math.floor(millisecs/1000);
+      formatLatency: function(millisecs) {
+        var secs = Math.ceil(millisecs/1000);
       	var mins = Math.floor(secs/60);
       	secs -= mins*60;
       	var hours = Math.floor(mins/60);
       	mins -= hours*60;
       	var results = 'PT';
-      	if ( hours > 0 )
+      	if ( hours > 0 ) {
       		results += hours + 'H';
-      	if (mins > 0 )
+        }
+      	if (mins > 0 ) {
       		results += mins + 'M';
-      	if (secs > 0 )
+        }
+      	if (secs >= 0 ) {
       		results += secs + 'S';
+        }
       	return results;
+      },
+
+      /**
+       * @desc Pads a number with a preceding 0
+       * @param {number} num - The number to pad
+       * @return {string} The number with a preceding 0 if applicable
+       * @memberof SCO.utils
+       */
+      pad: function(num){
+        return ((num > 9 ) ? num: '0'+num);
+      },
+
+      /**
+       * @desc Formats a date to a SCORM 2004-friendly timestamp
+       * @param {object} date - A date object to format
+       * @return {string} The formatted timestamp
+       * @memberof SCO.utils
+       */
+      formatTimestamp: function(date){
+        return date.getFullYear()+'-'+SCO.utils.pad(date.getMonth()+1)+'-'+SCO.utils.pad(date.getDate())+'T'+SCO.utils.pad(date.getHours())+':'+SCO.utils.pad(date.getMinutes())+':'+SCO.utils.pad(date.getSeconds());
       }
     },
 
@@ -260,6 +287,10 @@ var SCO = (function(data){
        */
       init: function(){
         doInitialize();
+        doSetValue('cmi.location', '');
+        doSetValue('cmi.success_status', 'unknown');
+        doSetValue('cmi.completion_status', 'incomplete');
+        doCommit();
       },
 
       /**
@@ -268,17 +299,38 @@ var SCO = (function(data){
        */
       setInteractions: function(){
         var i = 0;
-        var interactionStr = "cmi.interactions." + i.toString();
+        var interactionStr = "";
         for(var interaction in SCO.interactions.data){
-          doSetValue(interactionStr + ".id", i);
-          doSetValue(interactionStr + ".description", interaction.desc);
-          doSetValue(interactionStr + ".type", interaction.type);
-          doSetValue(interactionStr + ".learner_response", interaction.response);
-          doSetValue(interactionStr + ".result", interaction.result);
-          doSetValue(interactionStr + ".latency", interaction.latency);
-          doSetValue(interactionStr + ".timestamp", interaction.time);
+          interactionStr = "cmi.interactions." + i.toString();
+          doSetValue(interactionStr + ".id", SCO.interactions.data[interaction].id);
+          doSetValue(interactionStr + ".description", SCO.interactions.data[interaction].desc);
+          doSetValue(interactionStr + ".type", SCO.interactions.data[interaction].type);
+          doSetValue(interactionStr + ".learner_response", SCO.interactions.data[interaction].response);
+          doSetValue(interactionStr + ".correct_responses.0.pattern", SCO.interactions.data[interaction].response);
+          doSetValue(interactionStr + ".result", SCO.interactions.data[interaction].result);
+          doSetValue(interactionStr + ".latency", SCO.interactions.data[interaction].latency);
+          doSetValue(interactionStr + ".timestamp", SCO.interactions.data[interaction].time);
           i++;
         }
+      },
+
+      /**
+       * @desc Grades the interactions and sets a scaled scaledScore
+       * @memberof SCO.SCORM
+       */
+      grade: function(){
+        var numCorrect = 0;
+        var numInteractions = 0;
+
+        for(var i in SCO.interactions.data){
+          numInteractions++;
+          if(SCO.interactions.data[i].result == 'correct'){
+            numCorrect++;
+          }
+        }
+
+        var scaledScore = Math.round((numCorrect / numInteractions)*100)/100;
+        doSetValue('cmi.score.scaled', scaledScore);
       },
 
       /**
@@ -286,8 +338,12 @@ var SCO = (function(data){
        * @memberof SCO.SCORM
        */
       exit: function(){
+        SCO.SCORM.setInteractions();
+        SCO.SCORM.grade();
+        doSetValue('cmi.completion_status', 'completed');
         doSetValue("adl.nav.request", "exitAll");
         doSetValue("cmi.exit", "normal");
+        doSetValue("cmi.session_time", SCO.utils.formatLatency(new Date().getTime() - SCO.data.startTime));
         doCommit();
         doTerminate();
       },
@@ -303,6 +359,7 @@ var SCO = (function(data){
 
       /**
        * @desc Adds interaction data for a question to the interaction data object.
+       * @param {string} id - The ID of a question
        * @memberof SCO.interactions
        */
       addInteractionData: function(id){
@@ -311,6 +368,7 @@ var SCO = (function(data){
           desc: "",
           type: "",
           response: "",
+          correct_response: "",
           result: "",
           latency: "",
           time: ""
@@ -321,13 +379,18 @@ var SCO = (function(data){
             qData.id = SCO.nav.activePage.qid;
             qData.desc = "QID: " + SCO.nav.activePage.qid;
             if(SCO.nav.activePage.qtype == 'choice') {
-              qData.type = "Multiple Choice";
+              qData.type = "choice";
             }
             qData.response = id;
-            qData.result = SCO.nav.activePage.lures[i].correct ? 'Correct' : 'Incorrect';
+            for(var lure in SCO.nav.activePage.lures){
+              if(SCO.nav.activePage.lures[lure].correct) {
+                qData.correct_response = SCO.nav.activePage.lures[lure].id;
+              }
+            }
+            qData.result = SCO.nav.activePage.lures[i].correct ? 'correct' : 'incorrect';
             SCO.data.currQuestionEnd = new Date().getTime();
-            qData.latency = SCO.utils.formatTime(SCO.data.currQuestionEnd - SCO.data.currQuestionStart);
-            qData.time = SCO.utils.formatTime(new Date().getTime());
+            qData.latency = SCO.utils.formatLatency(SCO.data.currQuestionEnd - SCO.data.currQuestionStart);
+            qData.time = SCO.utils.formatTimestamp(new Date());
 
             SCO.interactions.data[SCO.nav.activePage.qid] = qData;
           }
@@ -336,6 +399,7 @@ var SCO = (function(data){
     }
   };
 
+  SCO.SCORM.init();
   SCO.nav.init();
   SCO.UI.init();
   SCO.nav.loadPageData(SCO.nav.activePageNumber);
