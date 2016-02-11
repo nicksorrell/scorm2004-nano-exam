@@ -3,7 +3,7 @@ var gulp = require('gulp'),
     concat = require('gulp-concat'),
     cryptoJS = require('crypto-js'),
     fs = require("fs"),
-    SCO_data = require('./src/js/sco_data.js');
+    SCO_data = require('./src/js/sco_data.json');
     /*
     minifycss = require('gulp-minify-css'),
     minifyHTML = require('gulp-minify-html'),
@@ -14,7 +14,7 @@ var gulp = require('gulp'),
 gulp.task('js', function(){
   return gulp.src(['src/js/main.js', 'src/js/SCORM_2004_APIWrapper.js'])
         .pipe(uglify())
-        .pipe(concat('main.js'))
+        //.pipe(concat('main.js'))
         .pipe(gulp.dest('dist/js'));
 });
 
@@ -26,8 +26,9 @@ gulp.task('html-copy', function(){
 gulp.task('crypto', function(){
   var rawStr = JSON.stringify(SCO_data);
   var wordArray = cryptoJS.enc.Utf8.parse(rawStr);
+  console.log(cryptoJS.enc.Base64.stringify(cryptoJS.SHA256(wordArray)));
   var base64 = cryptoJS.enc.Base64.stringify(wordArray);
-  console.log('encrypted:', base64);
+  fs.writeFileSync('src/js/sco_data_enc.json', base64);
 });
 
 //Run this after the default task, and after you manually update the script tags to use the concat file
