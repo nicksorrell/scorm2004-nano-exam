@@ -9,6 +9,10 @@
   "author": "Nick Sorrell",
   "license": "ISC",
   "devDependencies": {
+    "crypto-js": "^3.1.6",
+    "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.0",
+    "gulp-uglify": "^1.5.2",
     "jsdoc": "^3.4.0"
   }
 }

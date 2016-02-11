@@ -113,6 +113,70 @@ var SCO_data = {
 			]
 		},
 		{
+			title: "Question 4",
+			type: 'question',
+			qtype: 'choice',
+			qid: '004',
+			behavior: {
+				lockNext: true
+			},
+			text: 'This is the question text. Select an answer (answer 1 is correct).',
+			lures: [
+				{
+					id: 'A',
+					text: 'Answer 1',
+					correct: true
+				},
+				{
+					id: 'B',
+					text: 'Answer 2',
+					correct: false
+				},
+				{
+					id: 'C',
+					text: 'Answer 3',
+					correct: false
+				},
+				{
+					id: 'D',
+					text: 'Answer 4',
+					correct: false
+				}
+			]
+		},
+		{
+			title: "Question 5",
+			type: 'question',
+			qtype: 'choice',
+			qid: '005',
+			behavior: {
+				lockNext: true
+			},
+			text: 'This is the question text. Select an answer (answer 1 is correct).',
+			lures: [
+				{
+					id: 'A',
+					text: 'Answer 1',
+					correct: true
+				},
+				{
+					id: 'B',
+					text: 'Answer 2',
+					correct: false
+				},
+				{
+					id: 'C',
+					text: 'Answer 3',
+					correct: false
+				},
+				{
+					id: 'D',
+					text: 'Answer 4',
+					correct: false
+				}
+			]
+		},
+		{
 			title: 'Test Results',
 			type: 'submit',
 			behavior: {

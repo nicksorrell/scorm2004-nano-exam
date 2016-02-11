@@ -114,7 +114,8 @@ var SCO = (function(data){
 
                 if(SCO.SCORM.grade()){
                   setTimeout(function(){
-                    submitStatus.innerHTML = "Your assessment evaluation is complete.<br>Please select the <b>Exit</b> button to see your results on the LMS.";
+                    submitStatus.innerHTML = "Your assessment evaluation is complete.<br><br>Please select the <b>Exit</b> button to see your results on the LMS.";
+                    document.getElementById('exit').classList.add('highlighted');
                   }, 3000);
                 }
               }, 3000);
@@ -196,7 +197,12 @@ var SCO = (function(data){
         });
 
         document.getElementById('exit').addEventListener('click', function(){
-          SCO.SCORM.exit();
+          if(confirm("Do you really want to exit?")){
+            document.getElementsByClassName('panel')[0].style.opacity = 0;
+            setTimeout(function(){
+              SCO.SCORM.exit();
+            }, 2000);
+          }
         });
       },
 

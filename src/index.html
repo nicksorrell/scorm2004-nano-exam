@@ -36,7 +36,24 @@
     button {
       width: 100px;
       cursor: pointer;
+      background: none;
+      border: 1px solid #aaa;
+      border-radius: 3px;
+      padding: 5px;
     }
+
+    button:hover {
+      background: #aaa;
+    }
+
+    button.highlighted {
+      background: #FFAC41;
+    }
+
+    button.highlighted:hover {
+      background: #F58A00;
+    }
+
     label {
       cursor: pointer;
       padding:10px;
@@ -65,10 +82,10 @@
       <p id="data"></p>
     </div>
     <div class="controls">
-      <button id="prev"><</button>
+      <button id="prev">Prev</button>
       <span id="pageNum"></span>
-      <button id="next">></button>
-      <button id="exit">X</button>
+      <button id="next">Next</button>
+      <button id="exit">Exit</button>
     </div>
   </div>
   <script src="js/sco_data.js"></script>
